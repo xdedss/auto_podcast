@@ -27,34 +27,13 @@ import logging
 
 import edge_tts
 
-import audio_utils
+from . import audio_utils
+from .segments import (
+    TextSegment,
+    WhiteSpace,
+)
 
 logger = logging.getLogger(__name__)
-
-class WhiteSpace():
-
-    def __init__(self, time: float):
-        self.time = time
-    
-    def __str__(self) -> str:
-        return repr(self)
-
-    def __repr__(self) -> str:
-        return f'WhiteSpace(time={self.time})'
-
-class TextSegment():
-    
-    def __init__(self, text: str, voice: str, rate: float=1.0, volume: float=1.0):
-        self.text = text
-        self.voice = voice
-        self.rate = rate
-        self.volume = volume
-    
-    def __str__(self) -> str:
-        return repr(self)
-
-    def __repr__(self) -> str:
-        return f'TextSegment({repr(self.text)}, {repr(self.voice)}, rate={self.rate}, volume={self.volume})'
 
 
 
@@ -72,6 +51,8 @@ def float_to_percent(f: float):
     else:
         return f'-{round(-d * 100)}%'
 
+
+
 async def build_whitespace(temp_file: str, segment: WhiteSpace):
     audio_utils.make_empty_mp3(temp_file, segment.time)
 
@@ -86,7 +67,8 @@ async def build_audio_segment(temp_file: str, segment: TextSegment):
                 file.write(chunk["data"])
     # remove whitespace
     audio_utils.trim_mp3(temp_file, temp_file)
-    
+
+
 
 async def build_audio(gen: AsyncGenerator[Union[TextSegment, WhiteSpace], None], temp_dir: str='./temp'):
     ''' build audio by generator output
@@ -130,3 +112,5 @@ async def build_audio(gen: AsyncGenerator[Union[TextSegment, WhiteSpace], None],
     
     if (process.returncode != 0):
         logger.warning(f'non zero returncode: {process.returncode}')
+
+
