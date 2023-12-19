@@ -1,0 +1,5 @@
+
+The logging module in Python allows you to define custom log message formats using formatting placeholders. Here are some of the commonly used formatting placeholders that you can include in the log message format:
+
+%(asctime)s: The human-readable timestamp when the log message was created.
+Example format: '%(asctime)s' might produce '2023-12-19 10:30:45'.
