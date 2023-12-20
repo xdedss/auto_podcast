@@ -112,5 +112,7 @@ async def build_audio(gen: AsyncGenerator[Union[TextSegment, WhiteSpace], None],
     
     if (process.returncode != 0):
         logger.warning(f'non zero returncode: {process.returncode}')
+    
+    return output_file
 
 

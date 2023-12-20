@@ -1,0 +1,5 @@
+jsonschema
+langchain
+jinja2
+pypdf2
+edge-tts
