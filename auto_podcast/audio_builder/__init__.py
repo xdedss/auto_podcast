@@ -70,35 +70,64 @@ async def build_audio_segment(temp_file: str, segment: TextSegment):
 
 
 
-async def build_audio(gen: AsyncGenerator[Union[TextSegment, WhiteSpace], None], temp_dir: str='./temp'):
+async def build_audio(
+        gen: AsyncGenerator[Union[TextSegment, WhiteSpace], None], *, 
+        max_concurrent_generations: int=5, temp_dir: str='./temp'):
     ''' build audio by generator output
     '''
-    if (os.path.exists(temp_dir)):
-        shutil.rmtree(temp_dir)
+    # if (os.path.exists(temp_dir)):
+    #     shutil.rmtree(temp_dir)
     os.makedirs(temp_dir, exist_ok=True)
 
     seg_count = 0
     paths_file = os.path.join(temp_dir, 'paths.txt')
+    script_file = os.path.join(temp_dir, 'script.txt')
     output_file = os.path.join(temp_dir, 'out.mp3')
     
-    with open(paths_file, 'w') as paths_f:
+    
+    # run segment processing in parallel with segment generation
+    segment_queue = asyncio.Queue(maxsize=100)
+    async def segment_queue_processing():
+            while (True):
+                item = await segment_queue.get()
+                if (item is None):
+                    # signal of the end
+                    break
+                fname, segment = item
+
+                logger.debug(f'Generating segment {fname} <= {segment}')
+                
+                if (isinstance(segment, TextSegment)):
+                    await build_audio_segment(fname, segment)
+                elif (isinstance(segment, WhiteSpace)):
+                    await build_whitespace(fname, segment)
+                else:
+                    logger.warning(f'Not a valid segment, ignoring: {segment}')
+                    continue
+
+    segment_queue_processing_tasks = [
+        asyncio.create_task(segment_queue_processing()) for _ in range(max_concurrent_generations)
+    ]
+
+    # segment generation
+    with open(paths_file, 'w', encoding='utf-8') as paths_f, open(script_file, 'w', encoding='utf-8') as script_f:
 
         async for segment in gen:
 
             fname = os.path.join(temp_dir, f'{seg_count:04d}.mp3')
-            logger.debug(f'Got segment from generator: {segment}')
-            logger.debug(f'Destination: {fname}')
+            logger.debug(f'Got segment from generator: {fname} <= {segment}')
 
-            if (isinstance(segment, TextSegment)):
-                await build_audio_segment(fname, segment)
-            elif (isinstance(segment, WhiteSpace)):
-                await build_whitespace(fname, segment)
-            else:
-                logger.warning(f'Not a valid segment, ignoring: {segment}')
-                continue
+            await segment_queue.put((fname, segment))
 
             paths_f.write(f"file '{os.path.abspath(fname)}'\n")
+            script_f.write(str((fname, segment)) + '\n')
             seg_count += 1
+    
+    # signal of the end
+    for _ in range(max_concurrent_generations):
+        await segment_queue.put(None)
+    # wait til processing is done
+    await asyncio.gather(*segment_queue_processing_tasks)
     
     logger.debug('Start ffmpeg merging')
     cmd = f'ffmpeg -f concat -safe 0 -i {paths_file} -c copy {output_file}'

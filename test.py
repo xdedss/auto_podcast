@@ -13,6 +13,7 @@ from typing import (
 import asyncio
 import os
 import logging
+import shutil
 
 
 from auto_podcast.audio_builder import build_audio
@@ -24,9 +25,12 @@ from auto_podcast.content_provider.pdf_text import plain_pdf_gen
 from auto_podcast.content_provider.pdf_refine import refined_pdf_gen
 import auto_podcast.content_provider.pdf_refine
 
+from logger import setup_root_logger
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s][%(levelname)s][%(name)s] - %(message)s')
-logger = logging.getLogger()
+logger = setup_root_logger()
+# logging.getLogger('auto_podcast.audio_builder').setLevel(logging.DEBUG)
+logging.getLogger('auto_podcast.content_provider.pdf_refine').setLevel(logging.DEBUG)
+
 
 TEXT = "Hello World!"
 VOICE_EN = "en-GB-SoniaNeural"
@@ -54,7 +58,7 @@ async def amain() -> None:
     # await build_audio(plain_text_gen('foo.txt', VOICE_EN))
     # await build_audio(plain_pdf_gen(pdf_path, VOICE_EN, [1, 2]))
 
-    await build_audio(refined_pdf_gen(pdf_path, VOICE_EN, [0]))
+    output_file = await build_audio(refined_pdf_gen(pdf_path, VOICE_EN, range(21, 31)))
 
     # auto_podcast.content_provider.pdf_refine.test()
     # await auto_podcast.content_provider.pdf_refine.atest()
