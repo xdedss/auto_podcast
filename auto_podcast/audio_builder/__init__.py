@@ -84,6 +84,8 @@ async def build_audio(
     script_file = os.path.join(temp_dir, 'script.txt')
     output_file = os.path.join(temp_dir, 'out.mp3')
     
+    if (os.path.isfile(output_file)):
+        os.remove(output_file)
     
     # run segment processing in parallel with segment generation
     segment_queue = asyncio.Queue(maxsize=100)

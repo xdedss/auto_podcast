@@ -27,8 +27,8 @@ import auto_podcast.content_provider.pdf_refine
 
 from logger import setup_root_logger
 
-logger = setup_root_logger()
-# logging.getLogger('auto_podcast.audio_builder').setLevel(logging.DEBUG)
+logger = setup_root_logger("my_log_file.log")
+logging.getLogger('auto_podcast.audio_builder').setLevel(logging.DEBUG)
 logging.getLogger('auto_podcast.content_provider.pdf_refine').setLevel(logging.DEBUG)
 
 
@@ -54,14 +54,17 @@ async def foo_gen():
 
 async def amain() -> None:
     """Main function"""
-    # await build_audio(foo_gen())
+    print('start generation')
+    await build_audio(foo_gen())
     # await build_audio(plain_text_gen('foo.txt', VOICE_EN))
     # await build_audio(plain_pdf_gen(pdf_path, VOICE_EN, [1, 2]))
 
-    output_file = await build_audio(refined_pdf_gen(pdf_path, VOICE_EN, range(21, 31)))
+    # output_file = await build_audio(refined_pdf_gen(pdf_path, VOICE_EN, range(21, 31)))
+    # shutil.copy(output_file, '21-31.mp3')
 
     # auto_podcast.content_provider.pdf_refine.test()
     # await auto_podcast.content_provider.pdf_refine.atest()
+    print('finished')
 
 
 if __name__ == "__main__":
