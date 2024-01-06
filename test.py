@@ -45,11 +45,11 @@ pdf_path = 'test.pdf'
 async def foo_gen():
     for i in range(8):
         yield TextSegment(
-            f'{i}234',
+            f'Hello world 你好',
             'zh-CN-XiaoyiNeural',
             rate=1.0 + 0.1 * i
         )
-    # yield WhiteSpace(10)
+    yield WhiteSpace(1)
 
 
 async def amain() -> None:
